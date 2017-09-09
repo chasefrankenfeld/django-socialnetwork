@@ -6,6 +6,9 @@ from django.conf.urls.static import static
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^account/', include('account.urls')),
+
+    # social-auth-app-django
+    url('social_auth/', include('social_django.urls', namespace='social'))
 ]
 
 if settings.DEBUG:
