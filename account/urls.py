@@ -6,7 +6,10 @@ from django.contrib.auth.views import (login, logout, logout_then_login,
 from . import views
 
 urlpatterns = [
-        url(r'^$', views.dashboard, name="dashboard"),
+        url(r'^$', views.dashboard, name='dashboard'),
+        url(r'^register/$', views.register, name='register'),
+        url(r'^edit/$', views.edit, name='edit'),
+
         # login / login urls
         url(r'^login/$', login, name='login'),
         url(r'^logout/$', logout, name='logout'),
