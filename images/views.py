@@ -8,6 +8,14 @@ from .models import Image
 from common.decorators import ajax_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from actions.utils import create_action
+# Importing settings to allow the import of the Redis settings
+from django.conf import settings
+import redis
+
+# Establishing the redis connection to use it in the view
+r = redis.StrictRedis(host=settings.REDIS_HOST,
+                      port=settings.REDIS_PORT,
+                      db=settings.REDIS_DB)
 
 @login_required
 def image_create(request):
@@ -36,8 +44,15 @@ def image_create(request):
 
 def image_detail(request, id, slug):
     image = get_object_or_404(Image, id=id, slug_field=slug)
+    # increment total image views by 1
+    total_views = r.incr('image:{}:views'.format(image.id))
+    # imcrement image ranking by 1,
+    # stored in a sorted set created by .zincrby
+    # key value is 'image_ranking', with the related image.id
+    r.zincrby('image_ranking', image.id, 1)
     return render(request, 'images/image/detail.html', {'section': 'images',
-                                                        'image': image})
+                                                        'image': image,
+                                                        'total_views': total_views})
 
 
 @ajax_required
@@ -84,3 +99,18 @@ def image_list(request):
     return render(request,
                   'images/image/list.html',
                    {'section': 'images', 'images': images})
+
+
+@login_required
+def image_ranking(request):
+    # Get image ranking dictionary
+    # sorting it with 0 as lowest, and -1 as the highest score
+    image_ranking = r.zrange('image_ranking', 0, -1, desc=True)[:10]
+    # get the ids in the image_ranking and stores it in a list
+    image_ranking_ids = [int(id) for id in image_ranking]
+    # get most images
+    most_viewed = list(Image.objects.filter(id__in=image_ranking_ids))
+    most_viewed.sort(key=lambda x: image_ranking_ids.index(x.id))
+    return render(request, 'images/image/ranking.html',
+                           {'section': 'images',
+                           'most_viewed': most_viewed})
