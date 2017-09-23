@@ -17,7 +17,7 @@ requests-oauthlib==0.8.0
 six==1.10.0
 social-auth-app-django==1.2.0
 social-auth-core==1.4.0
-sorl-thumbnail==12.4
+git+git://github.com/mariocesar/sorl-thumbnail
 urllib3==1.22
 whitenoise==3.3.0
 psycopg2==2.6.2
